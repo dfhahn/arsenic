@@ -18,7 +18,7 @@ class Result(object):
         self.mbar_dDDG = float(mbar_error)
         self.other_dDDG = float(other_error)
 
-        self.dcalc_DDG = self.mbar_dDDG+self.other_dDDG  # is this definitely always additive?
+        self.dcalc_DDG = self.mbar_dDDG #+self.other_dDDG  # is this definitely always additive?
     def toDF(self):
       # TODO - can we do the handling of the dataframe in a different way? Or inside the plotting function that needs it?
         return pd.DataFrame({'ligandA': self.ligandA,
@@ -36,6 +36,13 @@ class FEMap(object):
 
     def __init__(self, csv):
         self.results = read_csv(csv)
+        self.graph = nx.DiGraph()
+        self.n_edges = len(self.results)
+
+        self.generate_graph_from_results()
+
+    def __init__(self, results):
+        self.results = results
         self.graph = nx.DiGraph()
         self.n_edges = len(self.results)
 

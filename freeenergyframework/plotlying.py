@@ -15,7 +15,7 @@ def plot_bar(df, ddg_cols, error_cols, exp_col='exp', exp_error_col='dexp', name
     '''
 
     # create color palette
-    colors = sns.color_palette(palette='bright')
+#    colors = sns.color_palette(palette='bright')
 
     numEdges = df.shape[0]
     numBarsPerEdge = len(ddg_cols)
@@ -36,9 +36,13 @@ def plot_bar(df, ddg_cols, error_cols, exp_col='exp', exp_error_col='dexp', name
                                  visible=True),
                              name=col,
                              marker=dict(
-                                 color=f'rgba{colors[i]}',
+#                                 color=f'rgba{colors[i]}',
                                  line=None
                              ),
+                             hovertemplate = '<b>%{text}</b><extra></extra>'+
+                             '<br>%{x:.2f} +- %{error_x.array:.2f} kcal mol<sup>-1</sup>',
+                             text=df.loc[:,name_col].values,
+                             hovertext='text',
                              orientation='h'
                              ))
 
@@ -52,7 +56,8 @@ def plot_bar(df, ddg_cols, error_cols, exp_col='exp', exp_error_col='dexp', name
                                      color='black',
                                      size=exp_size,
                                      line_width=4,
-                                 )
+                                 ),
+                                 hovertext=''
                                  ))
 
         fig.add_trace(go.Scatter(x=df.loc[:, exp_col].values - df.loc[:, exp_error_col].values,
@@ -65,6 +70,7 @@ def plot_bar(df, ddg_cols, error_cols, exp_col='exp', exp_error_col='dexp', name
                                      size=exp_size,
                                      line_width=2,
                                  ),
+                                 hovertext='',
                                  showlegend=False
                                  ))
 
@@ -72,6 +78,7 @@ def plot_bar(df, ddg_cols, error_cols, exp_col='exp', exp_error_col='dexp', name
                                  y=df[name_col].values,
                                  name='ExpErrors2',
                                  mode='markers',
+                                 hovertext='',
                                  marker=dict(
                                      symbol='line-ns',
                                      color='black',
@@ -84,7 +91,7 @@ def plot_bar(df, ddg_cols, error_cols, exp_col='exp', exp_error_col='dexp', name
     fig.update_layout(
         title=title,
         xaxis=dict(
-            title=r'$\Delta\Delta G\, \mathrm{[kcal\,mol^{-1}]}$',
+            title='ΔΔG [kcal mol<sup>-1</sup>]',
             titlefont_size=16,
             tickfont_size=14,
             range=(-alim, alim)
@@ -111,14 +118,14 @@ def plot_bar(df, ddg_cols, error_cols, exp_col='exp', exp_error_col='dexp', name
 
     if filename is None:
         fig.show()
-    elif filename.find('.html'):
+    elif filename.find('.html') > 0:
         fig.write_html(filename)
     else:
         fig.write_image(filename)
 
 
-def _master_plot(x, y, title='',
-                 xerr=None, yerr=None,
+def _master_plot(x, y, c=None, title='',
+                 xerr=None, yerr=None, names=None, smiles=None,
                  method_name='', target_name='', plot_type='',
                  guidelines=True, origins=True,
                  statistics=['RMSE', 'MUE'], filename=None):
@@ -133,14 +140,14 @@ def _master_plot(x, y, title='',
         # x=0
         fig.add_trace(go.Scatter(x=[0, 0],
                                  y=[ax_min, ax_max],
-                                 line_color='black',
+                                 line_color='grey',
                                  mode='lines',
                                  showlegend=False
                                  ))
         # y =0
         fig.add_trace(go.Scatter(x=[ax_min, ax_max],
                                  y=[0, 0],
-                                 line_color='black',
+                                 line_color='grey',
                                  mode='lines',
                                  showlegend=False
                                  ))
@@ -169,12 +176,34 @@ def _master_plot(x, y, title='',
     fig.add_trace(go.Scatter(x=[ax_min, ax_max],
                              y=[ax_min, ax_max],
                              line_color='black',
+                             line_dash='dash',
                              mode='lines',
                              showlegend=False
                              ))
 
     # 2.372 kcal / mol = 4 RT
-    clr = np.abs(x - y) / 2.372
+    if c is not None:
+        clr = c
+        cbar =  dict(
+                                     title="Analytical Error<br>[kcal mol<sup>-1</sup>]",
+                                     # lenmode="pixels", len=200,
+                                     thicknessmode='pixels', thickness=10,
+                                     yanchor="top", y=1,
+                                     tickvals=[0, 5, 7.5],
+                                     ticktext=['0.0', '5.0', '>5.0']
+                                 )
+    else:
+        clr = np.zeros_like(x)
+        cbar = None
+
+    if names is not None:
+        if smiles is not None:
+            smile_strings = ['<br>'.join(smile) for smile in smiles]
+            n = [f'{name}<br>{smile}' for name, smile in zip(names, smile_strings)]
+        else:
+            n = names
+    else:
+        n = ['' for x in clr]
 
     fig.add_trace(go.Scatter(x=x, y=y,
                              mode='markers',
@@ -182,7 +211,11 @@ def _master_plot(x, y, title='',
                              marker=dict(
                                  symbol='circle',
                                  color=clr,
-                                 colorscale='BlueRed'
+                                 colorscale=[(0, 'rgb(0,0,255)'), (0.5, 'rgb(127,0, 127)'), (0.5, 'rgb(255, 0, 0)'),
+                                             (1.0, 'rgb(255,0,0)')],
+                                 cmax=10.0,
+                                 cmin=0.0,
+                                 colorbar=cbar
                              ),
                              error_x=dict(
                                  type='data',  # value of error bar given in data coordinates
@@ -192,6 +225,11 @@ def _master_plot(x, y, title='',
                                  type='data',  # value of error bar given in data coordinates
                                  array=yerr,
                                  visible=True),
+                             hovertemplate='<b>%{text}</b><extra></extra>' +
+                                           '<br>Exp: %{x:.2f} +- %{error_x.array:.2f} kcal mol<sup>-1</sup>' +
+                                           '<br>Calc: %{y:.2f} +- %{error_y.array:.2f} kcal mol<sup>-1</sup>',
+                             text=n,
+                             hovertext='text',
                              showlegend=False
                              ))
 
@@ -211,7 +249,7 @@ def _master_plot(x, y, title='',
             text=long_title,
             font_family='monospace',
             x=0.0,
-            y=0.95,
+            y=0.99,
             font_size=14,
         ),
         xaxis=dict(
@@ -236,6 +274,9 @@ def _master_plot(x, y, title='',
         #             font_size=12
         #         )
     )
+
+    if not np.any(c):
+        fig.update_layout()
 
     if filename is None:
         fig.show()

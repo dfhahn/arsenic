@@ -102,8 +102,8 @@ def _master_plot(x, y, title='',
     return
 
 
-def plot_DDGs(results, method_name='', target_name='', title='',
-              map_positive=False, filename=None, symmetrise=False):
+def plot_DDGs(results, smiles=None, method_name='', target_name='', title='',
+              map_positive=False, filename=None, symmetrise=False, plotly=False):
     """ Function to plot relative free energies
 
     Parameters
@@ -151,10 +151,13 @@ def plot_DDGs(results, method_name='', target_name='', title='',
     xerr = np.asarray([x.dexp_DDG for x in results])
     yerr = np.asarray([x.dcalc_DDG for x in results])
 
+    c = np.asarray([x.other_dDDG for x in results])
+    names = [f'{x.ligandA}, {x.ligandB}' for x in results]
+
     if plotly:
-        plotlying._master_plot(x_data, y_data,
-                 xerr=xerr, yerr=yerr, filename=filename, plot_type='ΔΔG',
-                 title=title, method_name=method_name, target_name=target_name)
+        plotlying._master_plot(x_data, y_data, c=c,
+                     xerr=xerr, yerr=yerr, names=names, smiles=smiles, filename=filename, plot_type='ΔΔG',
+                     title=title, method_name=method_name, target_name=target_name)
     else:
         _master_plot(x_data, y_data,
                  xerr=xerr, yerr=yerr, filename=filename,
@@ -164,7 +167,7 @@ def plot_DDGs(results, method_name='', target_name='', title='',
 
 
 
-def plot_DGs(graph, method_name='', target_name='', title='', filename=None):
+def plot_DGs(graph, smiles=None, method_name='', target_name='', title='', filename=None, plotly=False):
     """Function to plot absolute free energies.
 
     Parameters
@@ -210,7 +213,7 @@ def plot_DGs(graph, method_name='', target_name='', title='', filename=None):
     return
 
 
-def plot_all_DDGs(graph, method_name='', target_name='', title='', filename=None, plotly=True):
+def plot_all_DDGs(graph, smiles = None, method_name='', target_name='', title='', filename=None, plotly=True):
     """Plots relative free energies between all ligands, which is calculated from
     the differences between all the absolute free energies. This data is different to `plot_DGs`
 
