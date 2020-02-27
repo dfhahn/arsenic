@@ -102,7 +102,7 @@ def _master_plot(x, y, title='',
     return
 
 
-def plot_DDGs(results, smiles=None, method_name='', target_name='', title='',
+def plot_DDGs(results, smiles=None, method_name_x='Experimental', method_name_y='', target_name='', title='',
               map_positive=False, filename=None, symmetrise=False, plotly=False):
     """ Function to plot relative free energies
 
@@ -157,17 +157,17 @@ def plot_DDGs(results, smiles=None, method_name='', target_name='', title='',
     if plotly:
         plotlying._master_plot(x_data, y_data, c=c,
                      xerr=xerr, yerr=yerr, names=names, smiles=smiles, filename=filename, plot_type='ΔΔG',
-                     title=title, method_name=method_name, target_name=target_name)
+                     title=title, method_name_x=method_name_x, method_name_y=method_name_y, target_name=target_name)
     else:
         _master_plot(x_data, y_data,
                  xerr=xerr, yerr=yerr, filename=filename,
-                 title=title, method_name=method_name, target_name=target_name)
+                 title=title, method_name=method_name_y, target_name=target_name)
 
     return
 
 
 
-def plot_DGs(graph, smiles=None, method_name='', target_name='', title='', filename=None, plotly=False):
+def plot_DGs(graph, smiles=None, method_name_x='Experimental', method_name_y='', target_name='', title='', filename=None, plotly=False):
     """Function to plot absolute free energies.
 
     Parameters
@@ -203,17 +203,17 @@ def plot_DGs(graph, smiles=None, method_name='', target_name='', title='', filen
         plotlying._master_plot(x_data, y_data,
                  xerr=xerr, yerr=yerr,
                  origins=False, statistics=['RMSE','MUE','R2','rho'],plot_type='ΔG',
-                 title=title, method_name=method_name, target_name=target_name, filename=filename)
+                 title=title, method_name_x=method_name_x, method_name_y=method_name_y, target_name=target_name, filename=filename)
     else:
         _master_plot(x_data, y_data,
                                    xerr=xerr, yerr=yerr,
                                    origins=False, statistics=['RMSE', 'MUE', 'R2', 'rho'], plot_type=rf'$\Delta$ G',
-                                   title=title, method_name=method_name, target_name=target_name, filename=filename)
+                                   title=title, method_name=method_name_y, target_name=target_name, filename=filename)
 
     return
 
 
-def plot_all_DDGs(graph, smiles = None, method_name='', target_name='', title='', filename=None, plotly=True):
+def plot_all_DDGs(graph, smiles = None, method_name_x='Experimental', method_name_y='', target_name='', title='', filename=None, plotly=True):
     """Plots relative free energies between all ligands, which is calculated from
     the differences between all the absolute free energies. This data is different to `plot_DGs`
 
@@ -265,11 +265,11 @@ def plot_all_DDGs(graph, smiles = None, method_name='', target_name='', title=''
     if plotly:
         plotlying._master_plot(x_data, y_data,
                  xerr=xerr, yerr=yerr,
-                 title=title, method_name=method_name,  plot_type='ΔΔG',
+                 title=title, method_name_x=method_name_x, method_name_y=method_name_y,  plot_type='ΔΔG',
                  filename=filename, target_name=target_name)
 
     else:
         _master_plot(x_data, y_data,
                      xerr=xerr, yerr=yerr,
-                     title=title, method_name=method_name,
+                     title=title, method_name=method_name_y,
                      filename=filename, target_name=target_name)

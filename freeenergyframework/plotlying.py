@@ -126,7 +126,7 @@ def plot_bar(df, ddg_cols, error_cols, exp_col='exp', exp_error_col='dexp', name
 
 def _master_plot(x, y, c=None, title='',
                  xerr=None, yerr=None, names=None, smiles=None,
-                 method_name='', target_name='', plot_type='',
+                 method_name_x='Experimental', method_name_y='', target_name='', plot_type='',
                  guidelines=True, origins=True,
                  statistics=['RMSE', 'MUE'], filename=None):
     nsamples = len(x)
@@ -207,7 +207,7 @@ def _master_plot(x, y, c=None, title='',
 
     fig.add_trace(go.Scatter(x=x, y=y,
                              mode='markers',
-                             name=f'{target_name},{method_name}',
+                             name=f'{target_name},{method_name_y}',
                              marker=dict(
                                  symbol='circle',
                                  color=clr,
@@ -253,13 +253,13 @@ def _master_plot(x, y, c=None, title='',
             font_size=14,
         ),
         xaxis=dict(
-            title=f'Experimental {plot_type} [kcal mol<sup>-1</sup>]',
+            title=f'{method_name_x} {plot_type} [kcal mol<sup>-1</sup>]',
             titlefont_size=14,
             tickfont_size=12,
             range=(ax_min, ax_max)
         ),
         yaxis=dict(
-            title=f'Calculated {plot_type} {method_name} [kcal mol<sup>-1</sup>]',
+            title=f'{method_name_y} {plot_type}  [kcal mol<sup>-1</sup>]',
             titlefont_size=14,
             tickfont_size=12,
             range=(ax_min, ax_max)
