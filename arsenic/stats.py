@@ -3,8 +3,40 @@ import numpy as np
 import scipy
 import sklearn.metrics
 from typing import Union
+     
+def compute_kde_1D_metrics(values, ci=0.95):
+    interval=np.max(values)-np.min(values)
+    positions = np.mgrid[np.min(values)-0.1*interval:np.max(values)+0.1*interval:1000j]
+    positions = positions.ravel()
+    pdf, cdf = compute_kde_1D(positions, values)
+    metrics = dict(
+        mle=positions[np.argmax(pdf)],
+        low=positions[np.argmin(np.fabs(cdf-0.5+ci/2.0))],
+        high=positions[np.argmin(np.fabs(cdf-0.5-ci/2.0))]
+                   )
+    return metrics
 
+def compute_kde_1D(positions, values):
+    """ Compute Gaussian Kernel Density Estimate of `values` at `positions`.
+    
+    Parameters
+    ----------
+    positions : ndarray with shape (N,)
+                coordinates of which KDE values are returned
+    values : ndarray with shape (N,)
+             values
 
+    Returns
+    -------
+    pdf_values : np.array with shape (N,)
+                 probability density function of KDE evaluated at positions
+    cdf_values : np.array with shape (N,)
+                 cumulative density function of KDE evaluated at positions
+    """
+    kernel = scipy.stats.gaussian_kde(values)
+    cdf = np.vectorize(lambda x: kernel.integrate_box(-np.inf, x))
+    return kernel(positions), cdf(positions)
+        
 def bootstrap_statistic(
     y_true: np.ndarray,
     y_pred: np.ndarray,
@@ -118,18 +150,13 @@ def bootstrap_statistic(
             y_pred_sample[i] = np.random.normal(loc=y_pred[j], scale=np.fabs(dy_pred[j]), size=1)
         s_n[replicate] = compute_statistic(y_true_sample, y_pred_sample, statistic)
 
-    rmse_stats = dict()
-    rmse_stats["mle"] = compute_statistic(y_true, y_pred, statistic)
-    rmse_stats["stderr"] = np.std(s_n)
-    rmse_stats["mean"] = np.mean(s_n)
-    # TODO: Is there a canned method to do this?
-    s_n = np.sort(s_n)
-    low_frac = (1.0 - ci) / 2.0
-    high_frac = 1.0 - low_frac
-    rmse_stats["low"] = s_n[int(np.floor(nbootstrap * low_frac))]
-    rmse_stats["high"] = s_n[int(np.ceil(nbootstrap * high_frac))]
+    metrics = dict()
+    metrics["observed"] = compute_statistic(y_true, y_pred, statistic)
+    metrics["stderr"] = np.std(s_n)
+    metrics["mean"] = np.mean(s_n)
+    metrics.update(compute_kde_1D_metrics(s_n, ci=ci))
 
-    return rmse_stats
+    return metrics
 
 
 def mle(
